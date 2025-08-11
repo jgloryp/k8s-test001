@@ -1,0 +1,47 @@
+# GitLab 네임스페이스 구성
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitlab
+  labels:
+    name: gitlab
+    purpose: source-control
+    environment: shared
+    team: devops
+    component: gitlab
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/warn: baseline
+    
+---
+# GitLab ResourceQuota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: gitlab-resource-quota
+  namespace: gitlab
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "10"
+    requests.storage: 100Gi
+
+---
+# GitLab LimitRange
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: gitlab-limit-range
+  namespace: gitlab
+spec:
+  limits:
+  - default:
+      cpu: 2000m
+      memory: 4Gi
+    defaultRequest:
+      cpu: 500m
+      memory: 1Gi
+    type: Container

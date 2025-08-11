@@ -1,0 +1,73 @@
+# ArgoCD 설치 및 기본 구성
+# Helm을 통한 ArgoCD 설치 또는 직접 매니페스트 적용
+
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  # ArgoCD 서버 구성
+  server:
+    service:
+      type: LoadBalancer
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: "nginx"
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - argocd.company.com
+      tls:
+        - secretName: argocd-server-tls
+          hosts:
+            - argocd.company.com
+    
+    # RBAC 구성
+    rbacConfig: |
+      policy.default: role:readonly
+      policy.csv: |
+        p, role:admin, applications, *, */*, allow
+        p, role:admin, clusters, *, *, allow
+        p, role:admin, repositories, *, *, allow
+        p, role:developer, applications, *, test/*, allow
+        p, role:developer, applications, get, staging/*, allow
+        g, devops-admin, role:admin
+        g, developers, role:developer
+
+  # Repository 서버 구성
+  repo:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  # Redis 구성 (고가용성)
+  redis:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  # Application Controller 구성
+  controller:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    
+    # 모니터링 메트릭 활성화
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        namespace: monitoring

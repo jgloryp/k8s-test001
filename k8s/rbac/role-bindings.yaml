@@ -1,0 +1,129 @@
+# 역할 바인딩 구성
+# 사용자/그룹과 역할 연결
+
+# DevOps 팀 관리자 권한
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devops-admin-binding
+  labels:
+    team: devops
+subjects:
+# GitLab 그룹 연결
+- kind: Group
+  name: devops-admin
+  apiGroup: rbac.authorization.k8s.io
+# 개별 사용자 (필요시)
+- kind: User
+  name: admin@company.com
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: devops-admin
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# ArgoCD Controller 권한 바인딩
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-application-controller-binding
+subjects:
+- kind: ServiceAccount
+  name: argocd-application-controller
+  namespace: argocd
+roleRef:
+  kind: ClusterRole
+  name: argocd-application-controller
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# 모니터링 시스템 권한 바인딩
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: monitoring-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: prometheus-operator
+  namespace: monitoring
+- kind: ServiceAccount
+  name: monitoring-reader
+  namespace: monitoring
+roleRef:
+  kind: ClusterRole
+  name: monitoring-reader
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Test 환경 개발자 권한
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: developers-test-access
+  namespace: test
+subjects:
+- kind: Group
+  name: developers
+  apiGroup: rbac.authorization.k8s.io
+- kind: ServiceAccount
+  name: developer
+  namespace: test
+roleRef:
+  kind: ClusterRole
+  name: developer-limited
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Test 환경 배포자 권한
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-deployer-binding
+  namespace: test
+subjects:
+- kind: ServiceAccount
+  name: test-deployer
+  namespace: test
+- kind: Group
+  name: cicd-runners
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cicd-deployer
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Staging 환경 배포자 권한 (더 제한적)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: staging-deployer-binding
+  namespace: staging
+subjects:
+- kind: ServiceAccount
+  name: staging-deployer
+  namespace: staging
+- kind: Group
+  name: senior-developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cicd-deployer
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Staging 환경 읽기 전용 접근 (일반 개발자)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: developers-staging-readonly
+  namespace: staging
+subjects:
+- kind: Group
+  name: developers
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: developer-limited
+  apiGroup: rbac.authorization.k8s.io

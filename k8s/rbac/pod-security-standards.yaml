@@ -1,0 +1,90 @@
+# Pod Security Standards 구성
+# PodSecurityPolicy 대신 사용하는 현재 표준
+
+# Test 환경 - Restricted 정책
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+  labels:
+    name: test
+    environment: test
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
+    kubernetes.io/description: "Test environment with restricted security standards"
+
+---
+apiVersion: v1
+kind: Namespace  
+metadata:
+  name: staging
+  labels:
+    name: staging
+    environment: staging
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
+    kubernetes.io/description: "Staging environment with restricted security standards"
+
+---
+# 모니터링 네임스페이스는 baseline 수준 (hostPath 볼륨 필요)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+    component: monitoring
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
+    kubernetes.io/description: "Monitoring namespace with baseline enforcement for metrics collection"
+
+---
+# ArgoCD 네임스페이스는 baseline 수준
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    name: argocd
+    component: argocd
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
+    kubernetes.io/description: "ArgoCD namespace with baseline enforcement for GitOps operations"
+
+---
+# GitLab 네임스페이스는 baseline 수준 (복잡한 워크로드)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitlab
+  labels:
+    name: gitlab
+    component: gitlab
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
+    kubernetes.io/description: "GitLab namespace with baseline enforcement for CI/CD operations"

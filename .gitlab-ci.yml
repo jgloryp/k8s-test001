@@ -1,0 +1,188 @@
+# Simplified GitLab CI/CD Pipeline for Blue-Green Deployment
+
+stages:
+  - build
+  - test
+  - deploy-blue-green
+
+variables:
+  DOCKER_BUILDKIT: 1
+  SAMPLE_APP_IMAGE: $CI_REGISTRY_IMAGE/sample-app
+  SAMPLE2_APP_IMAGE: $CI_REGISTRY_IMAGE/sample2-app
+  HELM_EXPERIMENTAL_OCI: 1
+
+# Build sample-app
+build-sample-app:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd sample-app
+    - docker build --target production -t $SAMPLE_APP_IMAGE:$CI_COMMIT_SHA .
+    - docker tag $SAMPLE_APP_IMAGE:$CI_COMMIT_SHA $SAMPLE_APP_IMAGE:latest
+    - docker push $SAMPLE_APP_IMAGE:$CI_COMMIT_SHA
+    - docker push $SAMPLE_APP_IMAGE:latest
+  only:
+    changes:
+      - sample-app/**/*
+      - .gitlab-ci.yml
+
+# Build sample2-app
+build-sample2-app:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - cd sample2-app
+    - docker build -t $SAMPLE2_APP_IMAGE:$CI_COMMIT_SHA .
+    - docker tag $SAMPLE2_APP_IMAGE:$CI_COMMIT_SHA $SAMPLE2_APP_IMAGE:latest
+    - docker push $SAMPLE2_APP_IMAGE:$CI_COMMIT_SHA
+    - docker push $SAMPLE2_APP_IMAGE:latest
+  only:
+    changes:
+      - sample2-app/**/*
+      - .gitlab-ci.yml
+
+# Test sample-app
+test-sample-app:
+  stage: test
+  image: node:18-alpine
+  script:
+    - cd sample-app
+    - npm ci
+    - npm run test
+    - npm run lint
+  coverage: '/Lines\s*:\s*(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      junit: sample-app/junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: sample-app/coverage/cobertura-coverage.xml
+  only:
+    changes:
+      - sample-app/**/*
+      - .gitlab-ci.yml
+
+# Test sample2-app
+test-sample2-app:
+  stage: test
+  image: python:3.11-slim
+  script:
+    - cd sample2-app
+    - pip install -r requirements.txt
+    - python -m pytest tests/ -v --cov=app --cov-report=xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      junit: sample2-app/pytest.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: sample2-app/coverage.xml
+  only:
+    changes:
+      - sample2-app/**/*
+      - .gitlab-ci.yml
+
+# Blue-Green deployment for sample-app
+deploy-sample-app-blue-green:
+  stage: deploy-blue-green
+  image: alpine/helm:latest
+  before_script:
+    - apk add --no-cache kubectl jq
+    - kubectl config use-context $KUBE_CONTEXT
+  script:
+    - |
+      # Determine current active version
+      CURRENT_VERSION=$(helm get values sample-app-bg -o json 2>/dev/null | jq -r '.activeVersion // "blue"')
+      if [ "$CURRENT_VERSION" = "blue" ]; then
+        NEW_VERSION="green"
+      else
+        NEW_VERSION="blue"
+      fi
+      
+      echo "Deploying to $NEW_VERSION version"
+      
+      # Deploy new version
+      helm upgrade --install sample-app-bg k8s/apps/sample-app-blue-green \
+        --set ${NEW_VERSION}Version.tag=$CI_COMMIT_SHA \
+        --set activeVersion=$CURRENT_VERSION \
+        --wait --timeout=10m
+      
+      # Health check new version
+      kubectl wait --for=condition=Ready pod -l version=$NEW_VERSION,app.kubernetes.io/name=sample-app --timeout=300s
+      
+      # Switch traffic to new version
+      helm upgrade sample-app-bg k8s/apps/sample-app-blue-green \
+        --set ${NEW_VERSION}Version.tag=$CI_COMMIT_SHA \
+        --set activeVersion=$NEW_VERSION \
+        --wait --timeout=5m
+      
+      echo "Successfully deployed and switched traffic to $NEW_VERSION"
+  environment:
+    name: production
+    url: https://sample-app.company.com
+  when: manual
+  dependencies:
+    - build-sample-app
+    - test-sample-app
+  only:
+    changes:
+      - sample-app/**/*
+      - k8s/apps/sample-app-blue-green/**/*
+      - .gitlab-ci.yml
+
+# Blue-Green deployment for sample2-app
+deploy-sample2-app-blue-green:
+  stage: deploy-blue-green
+  image: alpine/helm:latest
+  before_script:
+    - apk add --no-cache kubectl jq
+    - kubectl config use-context $KUBE_CONTEXT
+  script:
+    - |
+      # Determine current active version
+      CURRENT_VERSION=$(helm get values sample2-app-bg -o json 2>/dev/null | jq -r '.activeVersion // "blue"')
+      if [ "$CURRENT_VERSION" = "blue" ]; then
+        NEW_VERSION="green"
+      else
+        NEW_VERSION="blue"
+      fi
+      
+      echo "Deploying to $NEW_VERSION version"
+      
+      # Deploy new version
+      helm upgrade --install sample2-app-bg k8s/apps/sample2-app-blue-green \
+        --set ${NEW_VERSION}Version.tag=$CI_COMMIT_SHA \
+        --set activeVersion=$CURRENT_VERSION \
+        --wait --timeout=10m
+      
+      # Health check new version
+      kubectl wait --for=condition=Ready pod -l version=$NEW_VERSION,app.kubernetes.io/name=sample2-app --timeout=300s
+      
+      # Switch traffic to new version
+      helm upgrade sample2-app-bg k8s/apps/sample2-app-blue-green \
+        --set ${NEW_VERSION}Version.tag=$CI_COMMIT_SHA \
+        --set activeVersion=$NEW_VERSION \
+        --wait --timeout=5m
+      
+      echo "Successfully deployed and switched traffic to $NEW_VERSION"
+  environment:
+    name: production
+    url: https://sample2-app.company.com
+  when: manual
+  dependencies:
+    - build-sample2-app
+    - test-sample2-app
+  only:
+    changes:
+      - sample2-app/**/*
+      - k8s/apps/sample2-app-blue-green/**/*
+      - .gitlab-ci.yml
+

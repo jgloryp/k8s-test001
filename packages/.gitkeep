@@ -1,0 +1,2 @@
+# Helm 차트 패키지 디렉터리
+# GitLab CI/CD에서 빌드된 Helm 차트들이 저장됩니다

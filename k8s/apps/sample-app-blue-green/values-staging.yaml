@@ -1,0 +1,42 @@
+# sample-app Staging 환경 Blue-Green 배포 구성
+
+activeVersion: "blue"
+environment: "staging"
+logLevel: "info"
+
+blueVersion:
+  tag: "main"
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+greenVersion:
+  tag: "main"
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  hosts:
+    - host: sample-app-staging.company.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: sample-app-staging-tls
+      hosts:
+        - sample-app-staging.company.com
+  
+  canary:
+    enabled: false
+    weight: 0

@@ -1,0 +1,193 @@
+# 네트워크 정책 - 환경간 트래픽 격리
+# 마이크로세그멘테이션을 통한 보안 강화
+
+# Test 환경 네트워크 정책
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-isolation
+  namespace: test
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # 인바운드 트래픽 규칙
+  ingress:
+  # 같은 네임스페이스 내 통신 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: test
+  # Ingress Controller에서 접근 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  # 모니터링 시스템 접근 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090  # 메트릭 포트
+  
+  # 아웃바운드 트래픽 규칙
+  egress:
+  # DNS 해석 허용
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  # 같은 네임스페이스 통신 허용
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: test
+  # 외부 API 호출 허용 (HTTP/HTTPS)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+
+---
+# Staging 환경 네트워크 정책 (더 엄격)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: staging-isolation
+  namespace: staging
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # 같은 네임스페이스 내 통신 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: staging
+  # Ingress Controller 접근 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+  # 모니터링 접근 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  egress:
+  # DNS 허용
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  # 네임스페이스 내 통신 허용
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: staging
+  # 승인된 외부 서비스만 허용
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS만 허용
+
+---
+# 모니터링 네트워크 정책
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-access
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # 모든 네임스페이스에서 메트릭 수집 허용
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 9090  # Prometheus
+    - protocol: TCP
+      port: 3000  # Grafana
+    - protocol: TCP
+      port: 9093  # Alertmanager
+  
+  egress:
+  # DNS 허용
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  # 모든 네임스페이스 메트릭 수집 허용
+  - to: []
+  # 외부 알림 서비스 접근 허용
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 587   # SMTP
+    - protocol: TCP
+      port: 443   # HTTPS (Slack 등)
+
+---
+# ArgoCD 네트워크 정책
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-access
+  namespace: argocd
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Ingress에서 UI 접근 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080  # ArgoCD Server
+  # 모니터링 접근 허용
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8082  # 메트릭 포트
+  
+  egress:
+  # DNS 허용
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+  # Git 리포지토리 접근 (HTTPS)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # Kubernetes API 서버 접근
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 6443

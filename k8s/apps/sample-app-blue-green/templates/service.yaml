@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: 3000
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "sample-app-blue-green.activeVersionLabels" . | nindent 4 }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app-blue-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+    version: blue
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: 3000
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "sample-app-blue-green.blueLabels" . | nindent 4 }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-app-green-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+    version: green
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: 3000
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "sample-app-blue-green.greenLabels" . | nindent 4 }}
+
+---
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sample-app-blue-green
+  namespace: monitoring
+  labels:
+    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sample-app
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+  - port: metrics
+    interval: {{ .Values.serviceMonitor.interval }}
+    path: /metrics
+    honorLabels: true
+{{- end }}

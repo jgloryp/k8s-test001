@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample2-app-blue-green-staging
+  namespace: argocd
+  labels:
+    environment: staging
+    app: sample2-app
+    deployment-strategy: blue-green
+    argocd.argoproj.io/instance: sample2-app-staging
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: Sync
+    notifications.argoproj.io/subscribe.on-deployed.slack: webhook-alerts
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  info:
+    - name: Environment
+      value: Staging
+    - name: Application
+      value: sample2-app
+    - name: Strategy
+      value: Blue-Green
+    - name: Approval Required
+      value: "Yes"
+  source:
+    repoURL: https://gitlab.com/your-org/wb-infrastructure.git
+    targetRevision: main
+    path: k8s/apps/sample2-app-blue-green
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: false
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+      - Replace=false
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+    managedNamespaceMetadata:
+      labels:
+        env: staging
+        managed-by: argocd
+  revisionHistoryLimit: 10

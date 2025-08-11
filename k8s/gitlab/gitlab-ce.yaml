@@ -1,0 +1,92 @@
+# GitLab CE Kubernetes 배포 구성
+# Helm 차트를 사용한 GitLab CE 설치
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-values
+  namespace: gitlab
+data:
+  values.yaml: |
+    global:
+      edition: ce
+      hosts:
+        domain: company.com
+        gitlab:
+          name: gitlab.company.com
+      ingress:
+        enabled: true
+        class: nginx
+        tls:
+          enabled: true
+    
+    gitlab:
+      webservice:
+        replicas: 2
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+    
+    postgresql:
+      install: true
+      auth:
+        username: gitlab
+        database: gitlabhq_production
+      primary:
+        persistence:
+          size: 20Gi
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+    
+    redis:
+      install: true
+      auth:
+        enabled: false
+      master:
+        persistence:
+          size: 5Gi
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+    
+    gitlab-runner:
+      install: true
+      runners:
+        config: |
+          [[runners]]
+            executor = "kubernetes"
+            [runners.kubernetes]
+              namespace = "gitlab"
+              poll_timeout = 180
+              cpu_request = "100m"
+              memory_request = "128Mi"
+
+---
+# GitLab ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab
+  namespace: gitlab
+
+---
+# GitLab PersistentVolume (예시)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-data
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd

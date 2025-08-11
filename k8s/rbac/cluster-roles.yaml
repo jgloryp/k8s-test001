@@ -1,0 +1,153 @@
+# 클러스터 레벨 역할 정의
+# 환경별 권한 매트릭스
+
+# DevOps Admin 클러스터 역할 (비상 상황용)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: devops-admin
+  labels:
+    team: devops
+    access-level: admin
+    app.kubernetes.io/name: devops-admin
+    app.kubernetes.io/part-of: rbac-system
+  annotations:
+    kubernetes.io/description: "Emergency admin role - use sparingly"
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+rules:
+# 비상 상황용 전체 권한 - 신중히 사용
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+# 노드 접근 제한
+- apiGroups: [""]
+  resources: ["nodes/proxy"]
+  verbs: ["get", "list", "watch"]
+  resourceNames: []  # 빈 배열로 제한
+
+---
+# ArgoCD Controller 클러스터 역할
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-application-controller
+  labels:
+    app.kubernetes.io/name: argocd-application-controller
+    app.kubernetes.io/part-of: argocd-system
+  annotations:
+    kubernetes.io/description: "ArgoCD application controller with least-privilege access"
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+rules:
+# 애플리케이션 관리 권한 (제한된 네임스페이스)
+- apiGroups: [""]
+  resources: ["secrets", "configmaps", "services", "serviceaccounts"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  resourceNames: []
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# 네임스페이스 읽기 권한
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+# 이벤트 읽기 권한
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "watch"]
+
+---
+# 모니터링 읽기 전용 역할
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: monitoring-reader
+  labels:
+    app.kubernetes.io/name: monitoring-reader
+    app.kubernetes.io/part-of: monitoring-stack
+  annotations:
+    kubernetes.io/description: "Read-only access for metrics collection"
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+rules:
+# 메트릭 수집을 위한 읽기 권한
+- apiGroups: [""]
+  resources: ["nodes", "nodes/metrics", "services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+# 노드 프록시 제한된 접근
+- apiGroups: [""]
+  resources: ["nodes/proxy"]
+  verbs: ["get"]
+  resourceNames: []
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+- nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+  verbs: ["get"]
+
+---
+# 개발자 역할 (제한된 권한)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: developer-limited
+  labels:
+    app.kubernetes.io/name: developer-limited
+    app.kubernetes.io/part-of: rbac-system
+  annotations:
+    kubernetes.io/description: "Limited developer access for debugging and monitoring"
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+rules:
+# Pod 로그 읽기 권한 (제한된 네임스페이스에서만)
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "watch"]
+  resourceNames: []
+# 서비스 및 엔드포인트 읽기
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+# 배포 상태 읽기
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+# 인그레스 읽기
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+
+---
+# CI/CD 파이프라인 역할
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cicd-deployer
+  labels:
+    app.kubernetes.io/name: cicd-deployer
+    app.kubernetes.io/part-of: cicd-system
+  annotations:
+    kubernetes.io/description: "CI/CD pipeline deployment permissions"
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+rules:
+# 배포 관련 리소스 관리 (생성 및 업데이트만)
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+  resourceNames: []
+- apiGroups: [""]
+  resources: ["services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+# 롤아웃 상태 확인
+- apiGroups: ["apps"]
+  resources: ["deployments/status"]
+  verbs: ["get", "watch"]

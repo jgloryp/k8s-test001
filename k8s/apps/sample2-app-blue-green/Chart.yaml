@@ -1,0 +1,19 @@
+apiVersion: v2
+name: sample2-app-blue-green
+description: sample2-app (Python FastAPI) Blue-Green 배포 Helm 차트
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - python
+  - fastapi
+  - blue-green
+  - deployment
+  - monitoring
+  - devops
+home: https://gitlab.com/your-org/wb-infrastructure
+sources:
+  - https://gitlab.com/your-org/wb-infrastructure
+maintainers:
+  - name: DevOps Team
+    email: devops@company.com

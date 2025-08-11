@@ -1,0 +1,45 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "sample2-app-blue-green.fullname" . }}-hpa
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "sample2-app-blue-green.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "sample2-app-blue-green.fullname" . }}
+  minReplicas: {{ .Values.hpa.minReplicas | default 2 }}
+  maxReplicas: {{ .Values.hpa.maxReplicas | default 4 }}
+  metrics:
+  {{- if .Values.hpa.cpu.enabled }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.cpu.targetPercentage | default 70 }}
+  {{- end }}
+  {{- if .Values.hpa.memory.enabled }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.memory.targetPercentage | default 80 }}
+  {{- end }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.hpa.scaleDown.stabilizationWindowSeconds | default 300 }}
+      policies:
+      - type: Percent
+        value: {{ .Values.hpa.scaleDown.percentagePolicy | default 50 }}
+        periodSeconds: {{ .Values.hpa.scaleDown.periodSeconds | default 60 }}
+    scaleUp:
+      stabilizationWindowSeconds: {{ .Values.hpa.scaleUp.stabilizationWindowSeconds | default 0 }}
+      policies:
+      - type: Percent
+        value: {{ .Values.hpa.scaleUp.percentagePolicy | default 100 }}
+        periodSeconds: {{ .Values.hpa.scaleUp.periodSeconds | default 15 }}

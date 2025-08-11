@@ -1,0 +1,45 @@
+# sample2-app Test 환경 Blue-Green 배포 구성
+
+activeVersion: "blue"
+environment: "test"
+logLevel: "debug"
+
+blueVersion:
+  tag: "develop"
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+greenVersion:
+  tag: "develop"
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+ingress:
+  hosts:
+    - host: sample2-app-test.company.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: sample2-app-test-tls
+      hosts:
+        - sample2-app-test.company.com
+  
+  canary:
+    enabled: true
+    weight: 10
+
+autoscaling:
+  enabled: false

@@ -1,0 +1,153 @@
+# sample2-app Blue-Green 배포 기본 구성
+
+# 현재 활성 버전 (blue 또는 green)
+activeVersion: "blue"
+
+# 환경 설정
+environment: "default"
+logLevel: "info"
+
+# 애플리케이션 이미지 설정
+image:
+  repository: registry.gitlab.com/your-org/wb-infrastructure/sample2-app
+  pullPolicy: IfNotPresent
+
+# Blue 버전 구성
+blueVersion:
+  tag: "latest"
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Green 버전 구성
+greenVersion:
+  tag: "latest"
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# 서비스 구성
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+# Ingress 구성
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: sample2-app.company.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: sample2-app-tls
+      hosts:
+        - sample2-app.company.com
+  
+  # Canary 배포를 위한 설정
+  canary:
+    enabled: false
+    weight: 0
+
+# 오토스케일링 (HPA)
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  cpu:
+    enabled: true
+    targetPercentage: 70
+  memory:
+    enabled: true
+    targetPercentage: 80
+  scaleDown:
+    stabilizationWindowSeconds: 300
+    percentagePolicy: 50
+    periodSeconds: 60
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    percentagePolicy: 100
+    periodSeconds: 15
+
+# External service URLs for health checks
+externalServices:
+  sampleApp:
+    url: "http://sample-app:3000"
+
+# 헬스체크 구성
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# ServiceMonitor (Prometheus)
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  labels:
+    team: devops
+
+# Pod 보안 정책
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+# Node 선택기
+nodeSelector: {}
+
+# 톨러레이션
+tolerations: []
+
+# 어피니티 규칙
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - sample2-app
+        topologyKey: kubernetes.io/hostname
