@@ -4,8 +4,8 @@ A simplified Kubernetes-based DevOps platform with independent Blue-Green deploy
 
 ## Architecture Overview
 
-- **sample-app** (Node.js/Express) - Communicates with sample2-app
-- **sample2-app** (Python/FastAPI) - Communicates with sample-app  
+- **sample1-app** (Node.js/Express) - Communicates with sample2-app
+- **sample2-app** (Python/FastAPI) - Communicates with sample1-app  
 - Each service auto-scales to 2 pods using HPA
 - Independent Blue-Green deployment for each service
 - Health-check communication between services
@@ -13,11 +13,11 @@ A simplified Kubernetes-based DevOps platform with independent Blue-Green deploy
 ## File Structure
 
 ```
-├── sample-app/                  # Node.js application
+├── sample1-app/                  # Node.js application
 ├── sample2-app/                 # Python FastAPI application  
 ├── k8s/
 │   ├── apps/
-│   │   ├── sample-app-blue-green/    # Blue-Green Helm chart
+│   │   ├── sample1-app-blue-green/    # Blue-Green Helm chart
 │   │   └── sample2-app-blue-green/   # Blue-Green Helm chart
 │   ├── argocd/                  # GitOps configurations
 │   ├── monitoring/              # Basic monitoring setup
@@ -36,8 +36,8 @@ A simplified Kubernetes-based DevOps platform with independent Blue-Green deploy
 ### Deploy Services
 
 ```bash
-# Deploy sample-app
-helm upgrade --install sample-app-bg k8s/apps/sample-app-blue-green
+# Deploy sample1-app
+helm upgrade --install sample1-app-bg k8s/apps/sample1-app-blue-green
 
 # Deploy sample2-app  
 helm upgrade --install sample2-app-bg k8s/apps/sample2-app-blue-green
@@ -45,8 +45,8 @@ helm upgrade --install sample2-app-bg k8s/apps/sample2-app-blue-green
 
 ### Health Checks
 
-- **sample-app**: `http://sample-app:3000/health`
-- **sample-app external check**: `http://sample-app:3000/health/external`
+- **sample1-app**: `http://sample1-app:3000/health`
+- **sample1-app external check**: `http://sample1-app:3000/health/external`
 - **sample2-app**: `http://sample2-app:3000/health` 
 - **sample2-app external check**: `http://sample2-app:3000/health/external`
 
@@ -83,8 +83,8 @@ Basic Prometheus metrics are collected from:
 ### Local Testing
 
 ```bash
-# Start sample-app
-cd sample-app
+# Start sample1-app
+cd sample1-app
 npm install
 npm run dev
 
@@ -96,11 +96,11 @@ uvicorn app.main:app --reload
 
 ### Environment Variables
 
-**sample-app:**
+**sample1-app:**
 - `SAMPLE2_APP_URL`: URL to sample2-app service
 
 **sample2-app:**
-- `SAMPLE_APP_URL`: URL to sample-app service
+- `SAMPLE_APP_URL`: URL to sample1-app service
 
 ## CI/CD Pipeline
 

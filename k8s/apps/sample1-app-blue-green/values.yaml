@@ -1,4 +1,4 @@
-# sample-app Blue-Green 배포 기본 구성
+# sample1-app Blue-Green 배포 기본 구성
 
 # 현재 활성 버전 (blue 또는 green)
 activeVersion: "blue"
@@ -9,7 +9,7 @@ logLevel: "info"
 
 # 애플리케이션 이미지 설정
 image:
-  repository: registry.gitlab.com/your-org/wb-infrastructure/sample-app
+  repository: registry.gitlab.com/your-org/wb-infrastructure/sample1-app
   pullPolicy: IfNotPresent
 
 # Blue 버전 구성
@@ -50,14 +50,14 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-    - host: sample-app.company.com
+    - host: sample1-app.company.com
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: sample-app-tls
+    - secretName: sample1-app-tls
       hosts:
-        - sample-app.company.com
+        - sample1-app.company.com
   
   # Canary 배포를 위한 설정
   canary:
@@ -149,5 +149,5 @@ affinity:
           - key: app.kubernetes.io/name
             operator: In
             values:
-            - sample-app
+            - sample1-app
         topologyKey: kubernetes.io/hostname

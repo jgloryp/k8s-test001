@@ -1,18 +1,18 @@
 {{/*
-sample-app Blue-Green Helm 템플릿 헬퍼 함수들
+sample1-app Blue-Green Helm 템플릿 헬퍼 함수들
 */}}
 
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "sample-app-blue-green.name" -}}
+{{- define "sample1-app-blue-green.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "sample-app-blue-green.fullname" -}}
+{{- define "sample1-app-blue-green.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -28,16 +28,16 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "sample-app-blue-green.chart" -}}
+{{- define "sample1-app-blue-green.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "sample-app-blue-green.labels" -}}
-helm.sh/chart: {{ include "sample-app-blue-green.chart" . }}
-{{ include "sample-app-blue-green.selectorLabels" . }}
+{{- define "sample1-app-blue-green.labels" -}}
+helm.sh/chart: {{ include "sample1-app-blue-green.chart" . }}
+{{ include "sample1-app-blue-green.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -49,31 +49,31 @@ deployment-strategy: blue-green
 {{/*
 Selector labels for the main service
 */}}
-{{- define "sample-app-blue-green.selectorLabels" -}}
-app.kubernetes.io/name: sample-app
+{{- define "sample1-app-blue-green.selectorLabels" -}}
+app.kubernetes.io/name: sample1-app
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Blue version labels
 */}}
-{{- define "sample-app-blue-green.blueLabels" -}}
-{{ include "sample-app-blue-green.selectorLabels" . }}
+{{- define "sample1-app-blue-green.blueLabels" -}}
+{{ include "sample1-app-blue-green.selectorLabels" . }}
 version: blue
 {{- end }}
 
 {{/*
 Green version labels
 */}}
-{{- define "sample-app-blue-green.greenLabels" -}}
-{{ include "sample-app-blue-green.selectorLabels" . }}
+{{- define "sample1-app-blue-green.greenLabels" -}}
+{{ include "sample1-app-blue-green.selectorLabels" . }}
 version: green
 {{- end }}
 
 {{/*
 Active version selector labels
 */}}
-{{- define "sample-app-blue-green.activeVersionLabels" -}}
-{{ include "sample-app-blue-green.selectorLabels" . }}
+{{- define "sample1-app-blue-green.activeVersionLabels" -}}
+{{ include "sample1-app-blue-green.selectorLabels" . }}
 version: {{ .Values.activeVersion }}
 {{- end }}

@@ -88,7 +88,7 @@ validate_core_structure() {
         "k8s/monitoring:모니터링 시스템"
         "k8s/argocd:ArgoCD 구성"
         "k8s/apps:애플리케이션 매니페스트"
-        "sample-app:Node.js 샘플 애플리케이션"
+        "sample1-app:Node.js 샘플 애플리케이션"
         "sample2-app:Python FastAPI 샘플 애플리케이션"
         "docs:문서 및 가이드"
         "packages:Helm 차트 패키지"
@@ -111,9 +111,9 @@ validate_helm_charts() {
     log_check "Helm 차트 검증"
     
     local charts=(
-        "k8s/apps/sample-app"
+        "k8s/apps/sample1-app"
         "k8s/apps/sample2-app" 
-        "k8s/apps/sample-app-blue-green"
+        "k8s/apps/sample1-app-blue-green"
         "k8s/apps/sample2-app-blue-green"
     )
     
@@ -147,8 +147,8 @@ validate_argocd_apps() {
     local apps=(
         "k8s/argocd/application-test.yaml:기본 Test 환경"
         "k8s/argocd/application-staging.yaml:기본 Staging 환경"
-        "k8s/argocd/application-sample-app-blue-green-test.yaml:sample-app Blue-Green Test"
-        "k8s/argocd/application-sample-app-blue-green-staging.yaml:sample-app Blue-Green Staging"
+        "k8s/argocd/application-sample1-app-blue-green-test.yaml:sample1-app Blue-Green Test"
+        "k8s/argocd/application-sample1-app-blue-green-staging.yaml:sample1-app Blue-Green Staging"
         "k8s/argocd/application-sample2-app-blue-green-test.yaml:sample2-app Blue-Green Test"
         "k8s/argocd/application-sample2-app-blue-green-staging.yaml:sample2-app Blue-Green Staging"
     )
@@ -226,10 +226,10 @@ validate_monitoring() {
 validate_applications() {
     log_check "애플리케이션 구성 검증"
     
-    # sample-app 검증
-    check_file_exists "sample-app/Dockerfile" "sample-app Dockerfile"
-    check_file_exists "sample-app/package.json" "sample-app package.json"
-    check_file_exists "sample-app/src/server.ts" "sample-app 메인 서버"
+    # sample1-app 검증
+    check_file_exists "sample1-app/Dockerfile" "sample1-app Dockerfile"
+    check_file_exists "sample1-app/package.json" "sample1-app package.json"
+    check_file_exists "sample1-app/src/server.ts" "sample1-app 메인 서버"
     
     # sample2-app 검증
     check_file_exists "sample2-app/Dockerfile" "sample2-app Dockerfile"

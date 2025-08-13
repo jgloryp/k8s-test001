@@ -135,7 +135,7 @@ app.get('/api/users', (req, res) => {
 
 app.get('/api/status', (req, res) => {
   res.json({
-    service: 'sample-app',
+    service: 'sample1-app',
     environment: ENVIRONMENT,
     timestamp: new Date().toISOString(),
     version: '1.0.0',

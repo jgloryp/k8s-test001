@@ -1,4 +1,4 @@
-# sample-app Staging 환경 Blue-Green 배포 구성
+# sample1-app Staging 환경 Blue-Green 배포 구성
 
 activeVersion: "blue"
 environment: "staging"
@@ -28,14 +28,14 @@ greenVersion:
 
 ingress:
   hosts:
-    - host: sample-app-staging.company.com
+    - host: sample1-app-staging.company.com
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: sample-app-staging-tls
+    - secretName: sample1-app-staging-tls
       hosts:
-        - sample-app-staging.company.com
+        - sample1-app-staging.company.com
   
   canary:
     enabled: false

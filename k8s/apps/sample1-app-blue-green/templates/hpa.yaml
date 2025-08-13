@@ -1,16 +1,16 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "sample-app-blue-green.fullname" . }}-hpa
+  name: {{ include "sample1-app-blue-green.fullname" . }}-hpa
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+    {{- include "sample1-app-blue-green.labels" . | nindent 4 }}
     app.kubernetes.io/component: hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "sample-app-blue-green.fullname" . }}
+    name: {{ include "sample1-app-blue-green.fullname" . }}
   minReplicas: {{ .Values.hpa.minReplicas | default 2 }}
   maxReplicas: {{ .Values.hpa.maxReplicas | default 4 }}
   metrics:

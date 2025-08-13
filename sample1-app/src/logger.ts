@@ -19,13 +19,13 @@ const logger = winston.createLogger({
         level,
         message,
         environment,
-        service: 'sample-app',
+        service: 'sample1-app',
         ...meta
       });
     })
   ),
   defaultMeta: {
-    service: 'sample-app',
+    service: 'sample1-app',
     environment: environment
   },
   transports: [

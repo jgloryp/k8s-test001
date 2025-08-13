@@ -209,13 +209,13 @@ kubectl apply -f k8s/argocd/application-staging.yaml
 #### 수동 배포 (처음 한 번)
 ```bash
 # Test 환경 배포
-helm upgrade --install sample-app k8s/apps/sample-app \
-  -f k8s/apps/sample-app/values-test.yaml \
+helm upgrade --install sample1-app k8s/apps/sample1-app \
+  -f k8s/apps/sample1-app/values-test.yaml \
   -n test
 
 # Staging 환경 배포
-helm upgrade --install sample-app k8s/apps/sample-app \
-  -f k8s/apps/sample-app/values-staging.yaml \
+helm upgrade --install sample1-app k8s/apps/sample1-app \
+  -f k8s/apps/sample1-app/values-staging.yaml \
   -n staging
 ```
 
@@ -244,7 +244,7 @@ kubectl get svc -n staging
 
 # ArgoCD에서 동기화 상태 확인
 argocd app list
-argocd app get sample-app-test
+argocd app get sample1-app-test
 ```
 
 ## 일상 운영 작업
@@ -263,8 +263,8 @@ argocd app get sample-app-test
 ### 롤백 절차
 ```bash
 # ArgoCD를 통한 롤백
-argocd app rollback sample-app-staging
+argocd app rollback sample1-app-staging
 
 # 또는 Helm을 통한 롤백
-helm rollback sample-app -n staging
+helm rollback sample1-app -n staging
 ```

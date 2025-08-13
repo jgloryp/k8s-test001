@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     cors_allow_headers: List[str] = ["*"]
     
     # External service URLs
-    sample_app_url: str = "http://sample-app:3000"
+    sample_app_url: str = "http://sample1-app:3000"
 
     class Config:
         env_file = ".env"

@@ -102,7 +102,7 @@ async def readiness_check():
 
 @app.get("/health/external", tags=["Health"])
 async def external_health_check():
-    """외부 서비스 헬스체크 (sample-app 확인)"""
+    """외부 서비스 헬스체크 (sample1-app 확인)"""
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get(f"{settings.sample_app_url}/health")
@@ -122,7 +122,7 @@ async def external_health_check():
     except Exception as e:
         logger.error(
             "External health check failed",
-            service="sample-app",
+            service="sample1-app",
             url=settings.sample_app_url,
             error=str(e)
         )

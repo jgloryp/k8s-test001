@@ -2,10 +2,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sample-app-ingress
+  name: sample1-app-ingress
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+    {{- include "sample1-app-blue-green.labels" . | nindent 4 }}
   annotations:
     {{- if .Values.ingress.className }}
     kubernetes.io/ingress.class: {{ .Values.ingress.className | quote }}
@@ -37,7 +37,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: sample-app-service
+                name: sample1-app-service
                 port:
                   number: 3000
           {{- end }}
@@ -49,10 +49,10 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: sample-app-canary-ingress
+  name: sample1-app-canary-ingress
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "sample-app-blue-green.labels" . | nindent 4 }}
+    {{- include "sample1-app-blue-green.labels" . | nindent 4 }}
     ingress-type: canary
   annotations:
     {{- if .Values.ingress.className }}
@@ -76,7 +76,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ if eq $.Values.activeVersion "blue" }}sample-app-green-service{{ else }}sample-app-blue-service{{ end }}
+                name: {{ if eq $.Values.activeVersion "blue" }}sample1-app-green-service{{ else }}sample1-app-blue-service{{ end }}
                 port:
                   number: 3000
           {{- end }}

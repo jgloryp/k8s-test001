@@ -1,6 +1,6 @@
 apiVersion: v2
-name: sample-app-blue-green
-description: sample-app (Node.js Express) Blue-Green 배포 Helm 차트
+name: sample1-app-blue-green
+description: sample1-app (Node.js Express) Blue-Green 배포 Helm 차트
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

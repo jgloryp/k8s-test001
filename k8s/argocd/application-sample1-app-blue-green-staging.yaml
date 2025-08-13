@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sample-app-blue-green-staging
+  name: sample1-app-blue-green-staging
   namespace: argocd
   labels:
     environment: staging
-    app: sample-app
+    app: sample1-app
     deployment-strategy: blue-green
-    argocd.argoproj.io/instance: sample-app-staging
+    argocd.argoproj.io/instance: sample1-app-staging
   annotations:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/hook: Sync
@@ -20,7 +20,7 @@ spec:
     - name: Environment
       value: Staging
     - name: Application
-      value: sample-app
+      value: sample1-app
     - name: Strategy
       value: Blue-Green
     - name: Approval Required
@@ -28,7 +28,7 @@ spec:
   source:
     repoURL: https://gitlab.com/your-org/wb-infrastructure.git
     targetRevision: main
-    path: k8s/apps/sample-app-blue-green
+    path: k8s/apps/sample1-app-blue-green
     helm:
       valueFiles:
         - values.yaml

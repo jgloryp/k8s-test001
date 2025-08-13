@@ -1,5 +1,5 @@
 {
-  "name": "sample-app",
+  "name": "sample1-app",
   "version": "1.0.0",
   "description": "DevOps 파이프라인 데모용 샘플 애플리케이션",
   "main": "dist/server.js",

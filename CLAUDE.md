@@ -1,4 +1,4 @@
-# Claude 작업 기록 - WB Infrastructure DevOps 플랫폼
+# Claude 작업 기록 - Test001 Infrastructure DevOps 플랫폼
 
 ## 프로젝트 개요
 Kubernetes 기반의 포괄적인 DevOps 아키텍처 구성 프로젝트
@@ -60,7 +60,7 @@ Kubernetes 기반의 포괄적인 DevOps 아키텍처 구성 프로젝트
 - **대시보드**: Kubernetes, Application, ArgoCD 메트릭
 
 ### 7. 샘플 애플리케이션 ✅
-- **위치**: `sample-app/` + `k8s/apps/sample-app/`
+- **위치**: `sample1-app/` + `k8s/apps/sample1-app/`
 - **구성 요소**:
   - Node.js/Express 애플리케이션
   - Prometheus 메트릭 내장
@@ -150,7 +150,7 @@ kubectl apply -f k8s/argocd/
 
 ### 문제 해결
 - `docs/troubleshooting.md` 참조
-- 로그 분석: `kubectl logs -f deployment/sample-app -n <namespace>`
+- 로그 분석: `kubectl logs -f deployment/sample1-app -n <namespace>`
 - 메트릭 확인: Grafana 대시보드 또는 Prometheus 쿼리
 
 ## 확장 계획
@@ -175,7 +175,7 @@ kubectl apply -f k8s/argocd/
 - **전체 아키텍처 검토**: 80+ 파일 상세 분석 및 개선
 
 ### 애플리케이션 코드 강화 ✅
-- **sample-app (Node.js)**: 중앙집중식 오류 처리, 우아한 종료, 보안 강화
+- **sample1-app (Node.js)**: 중앙집중식 오류 처리, 우아한 종료, 보안 강화
 - **sample2-app (Python FastAPI)**: Pydantic 설정, 예외 처리, 비동기 패턴
 - **Docker 보안**: 멀티스테이지 빌드, 비루트 사용자, TINI 시그널 처리
 
@@ -209,10 +209,10 @@ kubectl apply -f k8s/argocd/
 - **여러 환경 지원**: test/staging 환경별 독립적 매개변수
 
 ### 독립적인 Blue-Green 배포 시스템 추가 ✅
-- **sample2-app 구현**: Python FastAPI로 sample-app과 동일한 기능 구현
+- **sample2-app 구현**: Python FastAPI로 sample1-app과 동일한 기능 구현
 - **독립적인 Blue-Green**: 각 앱이 자체적으로 Blue-Green 배포 수행
 - **구성 요소**:
-  - `sample-app-blue-green/`: sample-app 전용 Blue-Green Helm 차트
+  - `sample1-app-blue-green/`: sample1-app 전용 Blue-Green Helm 차트
   - `sample2-app-blue-green/`: sample2-app 전용 Blue-Green Helm 차트
   - `gitlab-ci-independent-blue-green.yml`: 독립적인 CI/CD 파이프라인
   - `deploy-independent-blue-green.sh`: 자동화된 배포 스크립트

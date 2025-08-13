@@ -10,7 +10,8 @@
       "Bash(mkdir:*)",
       "Bash(./scripts/validate-system.sh:*)",
       "Bash(touch:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

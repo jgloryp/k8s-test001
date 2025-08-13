@@ -1,4 +1,4 @@
-# sample-app Test 환경 Blue-Green 배포 구성
+# sample1-app Test 환경 Blue-Green 배포 구성
 
 activeVersion: "blue"
 environment: "test"
@@ -28,14 +28,14 @@ greenVersion:
 
 ingress:
   hosts:
-    - host: sample-app-test.company.com
+    - host: sample1-app-test.company.com
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: sample-app-test-tls
+    - secretName: sample1-app-test-tls
       hosts:
-        - sample-app-test.company.com
+        - sample1-app-test.company.com
   
   canary:
     enabled: true

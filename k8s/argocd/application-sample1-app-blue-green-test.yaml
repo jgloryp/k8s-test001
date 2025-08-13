@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sample-app-blue-green-test
+  name: sample1-app-blue-green-test
   namespace: argocd
   labels:
     environment: test
-    app: sample-app
+    app: sample1-app
     deployment-strategy: blue-green
-    argocd.argoproj.io/instance: sample-app-test
+    argocd.argoproj.io/instance: sample1-app-test
   annotations:
     argocd.argoproj.io/sync-wave: "1"
     argocd.argoproj.io/hook: Sync
@@ -19,13 +19,13 @@ spec:
     - name: Environment
       value: Test
     - name: Application
-      value: sample-app
+      value: sample1-app
     - name: Strategy
       value: Blue-Green
   source:
     repoURL: https://gitlab.com/your-org/wb-infrastructure.git
     targetRevision: develop
-    path: k8s/apps/sample-app-blue-green
+    path: k8s/apps/sample1-app-blue-green
     helm:
       valueFiles:
         - values.yaml

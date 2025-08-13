@@ -87,7 +87,7 @@ hpa:
 # External service URLs for health checks
 externalServices:
   sampleApp:
-    url: "http://sample-app:3000"
+    url: "http://sample1-app:3000"
 
 # 헬스체크 구성
 livenessProbe:
